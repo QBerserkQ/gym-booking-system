@@ -2,6 +2,8 @@ package volodea.gymbookingsystem.service;
 
 import org.springframework.stereotype.Service;
 import volodea.gymbookingsystem.dto.GymClassResponse;
+import volodea.gymbookingsystem.entity.GymClass;
+import volodea.gymbookingsystem.exception.GymClassNotFoundException;
 import volodea.gymbookingsystem.repository.GymRepository;
 
 import java.util.List;
@@ -25,5 +27,11 @@ public class GymClassService {
                         , gymClass.getCapacity()
                 ))
                 .toList();
+    }
+
+    public GymClass getGymClassById(Long id) {
+        return gymRepository.findById(id).orElseThrow(
+                () -> new GymClassNotFoundException(id)
+        );
     }
 }
