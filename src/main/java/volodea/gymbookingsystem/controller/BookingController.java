@@ -32,4 +32,9 @@ public class BookingController {
     public BookingResponse approveBooking(@PathVariable Long bookingId) {
         return bookingService.approveBooking(bookingId);
     }
+
+    @PostMapping("/{bookingId}/reject")
+    public BookingResponse rejectBooking(@PathVariable Long bookingId) {
+        return bookingService.rejectBooking(bookingId);
+    }
 }
