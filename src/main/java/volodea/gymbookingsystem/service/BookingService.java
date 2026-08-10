@@ -7,8 +7,7 @@ import volodea.gymbookingsystem.dto.BookingResponse;
 import volodea.gymbookingsystem.entity.Booking;
 import volodea.gymbookingsystem.entity.BookingStatus;
 import volodea.gymbookingsystem.entity.GymClass;
-import volodea.gymbookingsystem.exception.NoAvailableSpotsException;
-import volodea.gymbookingsystem.exception.UserNotFoundException;
+import volodea.gymbookingsystem.exception.*;
 import volodea.gymbookingsystem.repository.BookingRepository;
 import volodea.gymbookingsystem.repository.UserRepository;
 
@@ -61,5 +60,58 @@ public class BookingService {
                 , booking.getBookingStatus()
                 , booking.getCreatedAt()
         );
+    }
+
+    @Transactional
+    public BookingResponse approveBooking(Long bookingId) {
+        Booking booking = getPendingBookingOrThrow(bookingId);
+
+        GymClass gymClass = gymClassService.findGymClassByIdForUpdate(booking.getGymClass().getId());
+
+        long confirmed = bookingRepository
+                .countByGymClassIdAndBookingStatus(gymClass.getId(), BookingStatus.CONFIRMED);
+
+        if((gymClass.getCapacity() - confirmed) < 1) {
+            throw new NoAvailableSpotsException(gymClass.getId());
+        }
+
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
+        Booking saved = bookingRepository.save(booking);
+
+        return new BookingResponse(
+                saved.getId()
+                , gymClass.getTitle()
+                , gymClass.getStartTime()
+                , saved.getBookingStatus()
+                , saved.getCreatedAt()
+        );
+    }
+
+    @Transactional
+    public BookingResponse rejectBooking(Long bookingId) {
+        Booking booking = getPendingBookingOrThrow(bookingId);
+
+        booking.setBookingStatus(BookingStatus.REJECTED);
+        Booking saved = bookingRepository.save(booking);
+
+        return new BookingResponse(
+                saved.getId()
+                , saved.getGymClass().getTitle()
+                , saved.getGymClass().getStartTime()
+                , saved.getBookingStatus()
+                , saved.getCreatedAt()
+        );
+    }
+
+    private Booking getPendingBookingOrThrow(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(
+                () -> new BookingNotFoundException(bookingId)
+        );
+
+        if (!booking.getBookingStatus().equals(BookingStatus.PENDING)) {
+            throw new InvalidBookingStateException(bookingId);
+        }
+
+        return booking;
     }
 }

@@ -7,6 +7,7 @@ import volodea.gymbookingsystem.exception.GymClassNotFoundException;
 import volodea.gymbookingsystem.repository.GymRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GymClassService {
@@ -32,6 +33,12 @@ public class GymClassService {
     public GymClass getGymClassById(Long id) {
         return gymRepository.findById(id).orElseThrow(
                 () -> new GymClassNotFoundException(id)
+        );
+    }
+
+    public GymClass findGymClassByIdForUpdate(Long gymClassId) {
+        return gymRepository.findByIdForUpdate(gymClassId).orElseThrow(
+                () -> new GymClassNotFoundException(gymClassId)
         );
     }
 }
