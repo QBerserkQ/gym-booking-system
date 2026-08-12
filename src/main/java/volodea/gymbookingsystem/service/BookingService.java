@@ -12,6 +12,7 @@ import volodea.gymbookingsystem.repository.BookingRepository;
 import volodea.gymbookingsystem.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class BookingService {
@@ -53,13 +54,7 @@ public class BookingService {
 
         booking =  bookingRepository.save(booking);
 
-        return new BookingResponse(
-                booking.getId()
-                , gymClass.getTitle()
-                , gymClass.getStartTime()
-                , booking.getBookingStatus()
-                , booking.getCreatedAt()
-        );
+        return toResponse(booking, gymClass);
     }
 
     @Transactional
@@ -78,13 +73,7 @@ public class BookingService {
         booking.setBookingStatus(BookingStatus.CONFIRMED);
         Booking saved = bookingRepository.save(booking);
 
-        return new BookingResponse(
-                saved.getId()
-                , gymClass.getTitle()
-                , gymClass.getStartTime()
-                , saved.getBookingStatus()
-                , saved.getCreatedAt()
-        );
+        return toResponse(saved, gymClass);
     }
 
     @Transactional
@@ -94,13 +83,15 @@ public class BookingService {
         booking.setBookingStatus(BookingStatus.REJECTED);
         Booking saved = bookingRepository.save(booking);
 
-        return new BookingResponse(
-                saved.getId()
-                , saved.getGymClass().getTitle()
-                , saved.getGymClass().getStartTime()
-                , saved.getBookingStatus()
-                , saved.getCreatedAt()
-        );
+        return toResponse(saved, saved.getGymClass());
+    }
+
+    public List<BookingResponse> getPendingBookings() {
+        List<Booking> bookings = bookingRepository.findByBookingStatus(BookingStatus.PENDING);
+
+        return bookings.stream().map(
+                booking -> toResponse(booking, booking.getGymClass()))
+                .toList();
     }
 
     private Booking getPendingBookingOrThrow(Long bookingId) {
@@ -113,5 +104,15 @@ public class BookingService {
         }
 
         return booking;
+    }
+
+    private BookingResponse toResponse(Booking booking, GymClass gymClass) {
+        return new BookingResponse(
+                booking.getId(),
+                gymClass.getTitle(),
+                gymClass.getStartTime(),
+                booking.getBookingStatus(),
+                booking.getCreatedAt()
+        );
     }
 }
