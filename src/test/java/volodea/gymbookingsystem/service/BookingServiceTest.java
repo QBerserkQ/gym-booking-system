@@ -13,7 +13,6 @@ import volodea.gymbookingsystem.entity.GymClass;
 import volodea.gymbookingsystem.entity.User;
 import volodea.gymbookingsystem.exception.*;
 import volodea.gymbookingsystem.repository.BookingRepository;
-import volodea.gymbookingsystem.repository.GymRepository;
 import volodea.gymbookingsystem.repository.UserRepository;
 
 import java.util.Optional;
