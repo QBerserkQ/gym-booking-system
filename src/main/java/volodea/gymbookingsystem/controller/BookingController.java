@@ -40,12 +40,12 @@ public class BookingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/{bookingId}/approve")
+    @PatchMapping("/{bookingId}/approve")
     public BookingResponse approveBooking(@PathVariable Long bookingId) {
         return bookingService.approveBooking(bookingId);
     }
 
-    @PostMapping("/{bookingId}/reject")
+    @PatchMapping("/{bookingId}/reject")
     public BookingResponse rejectBooking(@PathVariable Long bookingId) {
         return bookingService.rejectBooking(bookingId);
     }
