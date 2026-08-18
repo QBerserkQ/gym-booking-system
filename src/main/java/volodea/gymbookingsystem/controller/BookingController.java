@@ -8,6 +8,8 @@ import volodea.gymbookingsystem.dto.BookingRequest;
 import volodea.gymbookingsystem.dto.BookingResponse;
 import volodea.gymbookingsystem.service.BookingService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/bookings")
 public class BookingController {
@@ -16,6 +18,16 @@ public class BookingController {
 
     public BookingController(BookingService bookingService) {
         this.bookingService = bookingService;
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<List<BookingResponse>> getPendingBookings() {
+        return ResponseEntity.ok(bookingService.getPendingBookings());
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<List<BookingResponse>> getMyBookings(@RequestParam Long userId) {
+        return ResponseEntity.ok(bookingService.getBookingsByUserId(userId));
     }
 
     @PostMapping

@@ -94,6 +94,15 @@ public class BookingService {
                 .toList();
     }
 
+    public List<BookingResponse> getBookingsByUserId(Long userId){
+        List<Booking> bookings = bookingRepository.findByUserId(userId);
+
+        return bookings.stream()
+                .map(
+                        booking -> toResponse(booking, booking.getGymClass())
+                ).toList();
+    }
+
     private Booking getPendingBookingOrThrow(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(
                 () -> new BookingNotFoundException(bookingId)
