@@ -3,6 +3,7 @@ package volodea.gymbookingsystem.controller;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import volodea.gymbookingsystem.dto.BookingRequest;
 import volodea.gymbookingsystem.dto.BookingResponse;
@@ -26,14 +27,16 @@ public class BookingController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<BookingResponse>> getMyBookings(@RequestParam Long userId) {
+    public ResponseEntity<List<BookingResponse>> getMyBookings(Authentication authentication) {
+        Long userId = Long.parseLong(authentication.getName());
         return ResponseEntity.ok(bookingService.getBookingsByUserId(userId));
     }
 
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(
-            @RequestParam Long userId
-            , @Valid @RequestBody BookingRequest bookingRequest) {
+            @Valid @RequestBody BookingRequest bookingRequest, Authentication authentication) {
+
+        Long userId = Long.parseLong(authentication.getName());
 
         BookingResponse response = bookingService.createBooking(bookingRequest, userId);
 

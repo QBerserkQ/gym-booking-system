@@ -2,17 +2,22 @@ package volodea.gymbookingsystem.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import volodea.gymbookingsystem.config.SecurityConfig;
+import volodea.gymbookingsystem.config.jwt.JwtService;
 import volodea.gymbookingsystem.dto.BookingRequest;
 import volodea.gymbookingsystem.dto.BookingResponse;
-import volodea.gymbookingsystem.entity.Booking;
 import volodea.gymbookingsystem.entity.BookingStatus;
 import volodea.gymbookingsystem.exception.InvalidBookingStateException;
 import volodea.gymbookingsystem.exception.NoAvailableSpotsException;
+import volodea.gymbookingsystem.repository.UserRepository;
 import volodea.gymbookingsystem.service.BookingService;
 
 import java.time.LocalDateTime;
@@ -22,12 +27,13 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BookingController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@Import(SecurityConfig.class)
 public class BookingControllerTest {
 
     @Autowired
@@ -35,6 +41,12 @@ public class BookingControllerTest {
 
     @MockitoBean
     private BookingService bookingService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     @Test
     void shouldReturnCreatedBookingResponse() throws Exception {
@@ -44,8 +56,12 @@ public class BookingControllerTest {
         when(bookingService.createBooking(any(BookingRequest.class), eq(1L))).thenReturn(bookingResponse);
 
         mockMvc.perform(post("/api/bookings")
+                .with(SecurityMockMvcRequestPostProcessors
+                        .authentication(new UsernamePasswordAuthenticationToken(
+                        "1", null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                        ))
+                )
                 .contentType(MediaType.APPLICATION_JSON)
-                .param("userId", "1")
                 .content("""
                         {
                         
@@ -64,13 +80,17 @@ public class BookingControllerTest {
                 .thenThrow(new NoAvailableSpotsException(10L));
 
         mockMvc.perform(post("/api/bookings")
+                .with(SecurityMockMvcRequestPostProcessors
+                        .authentication(new UsernamePasswordAuthenticationToken(
+                                "1", null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                        ))
+                )
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                             {
                                 "gymClassId": 10
                             }    
-                        """)
-                .param("userId", "1"))
+                        """))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409));
     }
@@ -78,9 +98,13 @@ public class BookingControllerTest {
     @Test
     void should400WhenGymClassIdIsMissing() throws Exception {
         mockMvc.perform(post("/api/bookings")
+                        .with(SecurityMockMvcRequestPostProcessors
+                                .authentication(new UsernamePasswordAuthenticationToken(
+                                        "1", null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                                ))
+                        )
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}")
-                        .param("userId", "1"))
+                        .content("{}"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -89,7 +113,12 @@ public class BookingControllerTest {
         when(bookingService.approveBooking(1L)).thenReturn(new BookingResponse(1L
                 , "Main", LocalDateTime.now(), BookingStatus.CONFIRMED, LocalDateTime.now()));
 
-        mockMvc.perform(patch("/api/bookings/{bookingId}/approve", 1L))
+        mockMvc.perform(patch("/api/bookings/{bookingId}/approve", 1L)
+                .with(SecurityMockMvcRequestPostProcessors
+                        .authentication(new UsernamePasswordAuthenticationToken(
+                                "1", null, List.of(new SimpleGrantedAuthority("ROLE_SUPPORT"))
+                        ))
+                ))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.bookingStatus").value("CONFIRMED"));
@@ -99,7 +128,12 @@ public class BookingControllerTest {
     void shouldReturn409WhenApprovingNonPendingBooking() throws Exception {
         when(bookingService.approveBooking(1L)).thenThrow(new InvalidBookingStateException(1L));
 
-        mockMvc.perform(patch("/api/bookings/{bookingId}/approve", 1L))
+        mockMvc.perform(patch("/api/bookings/{bookingId}/approve", 1L)
+                        .with(SecurityMockMvcRequestPostProcessors
+                                .authentication(new UsernamePasswordAuthenticationToken(
+                                        "1", null, List.of(new SimpleGrantedAuthority("ROLE_SUPPORT"))
+                                ))
+                        ))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409));
     }
@@ -109,7 +143,8 @@ public class BookingControllerTest {
         when(bookingService.rejectBooking(1L)).thenReturn(new BookingResponse(1L
                 , "Main", LocalDateTime.now(), BookingStatus.REJECTED, LocalDateTime.now()));
 
-        mockMvc.perform(patch("/api/bookings/{bookingId}/reject", 1L))
+        mockMvc.perform(patch("/api/bookings/{bookingId}/reject", 1L)
+                        .with(user("1").roles("SUPPORT")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.bookingStatus").value("REJECTED"));
@@ -123,7 +158,12 @@ public class BookingControllerTest {
 
         when(bookingService.getPendingBookings()).thenReturn(bookings);
 
-        mockMvc.perform(get("/api/bookings/pending"))
+        mockMvc.perform(get("/api/bookings/pending")
+                        .with(SecurityMockMvcRequestPostProcessors
+                                .authentication(new UsernamePasswordAuthenticationToken(
+                                        "1", null, List.of(new SimpleGrantedAuthority("ROLE_SUPPORT"))
+                                ))
+                        ))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$") .isArray())
                 .andExpect(jsonPath("$.length()").value(1))
@@ -135,7 +175,12 @@ public class BookingControllerTest {
     void shouldReturnEmptyListWhenNoBookings() throws Exception {
         when(bookingService.getPendingBookings()).thenReturn(new ArrayList<>());
 
-        mockMvc.perform(get("/api/bookings/pending"))
+        mockMvc.perform(get("/api/bookings/pending")
+                        .with(SecurityMockMvcRequestPostProcessors
+                                .authentication(new UsernamePasswordAuthenticationToken(
+                                        "1", null, List.of(new SimpleGrantedAuthority("ROLE_SUPPORT"))
+                                ))
+                        ))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$") .isArray())
                 .andExpect(jsonPath("$.length()").value(0));
@@ -150,7 +195,7 @@ public class BookingControllerTest {
         when(bookingService.getBookingsByUserId(1L)).thenReturn(bookings);
 
         mockMvc.perform(get("/api/bookings/my")
-                .param("userId", "1"))
+                .with(user("1").roles("USER")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$.length()").value(1))
