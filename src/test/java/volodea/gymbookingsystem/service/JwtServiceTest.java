@@ -25,7 +25,7 @@ public class JwtServiceTest {
     void shouldGenerateTokenAndExtractUserIdCorrectly() {
         User testUser = User.builder().id(1L).role(Role.USER).build();
 
-        String token = jwtService.generateToken(testUser);
+        String token = jwtService.generateJwtToken(testUser);
 
         assertThat(token).isNotNull();
         assertThat(jwtService.getUserIdFromToken(token)).isEqualTo(testUser.getId());
@@ -35,7 +35,7 @@ public class JwtServiceTest {
     void shouldValidateGeneratedTokenAsTrue(){
         User testUser = User.builder().id(1L).role(Role.USER).build();
 
-        String token = jwtService.generateToken(testUser);
+        String token = jwtService.generateJwtToken(testUser);
 
         assertThat(jwtService.validateJwtToken(token)).isTrue();
     }

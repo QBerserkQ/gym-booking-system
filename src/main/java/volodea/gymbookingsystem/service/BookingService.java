@@ -1,5 +1,6 @@
 package volodea.gymbookingsystem.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import volodea.gymbookingsystem.dto.BookingRequest;
@@ -15,18 +16,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class BookingService {
     private final BookingRepository bookingRepository;
     private final GymClassService gymClassService;
     private final UserRepository userRepository;
-
-    public BookingService(GymClassService gymClassService
-            , BookingRepository bookingRepository
-            , UserRepository userRepository) {
-        this.gymClassService = gymClassService;
-        this.bookingRepository = bookingRepository;
-        this.userRepository = userRepository;
-    }
 
     @Transactional
     public BookingResponse createBooking(BookingRequest bookingRequest, Long userId) {

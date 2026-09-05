@@ -1,6 +1,7 @@
 package volodea.gymbookingsystem.dto;
 
 public record LoginResponse(
-        String token
+        String jwtToken
+        , String refreshToken
 ) {
 }

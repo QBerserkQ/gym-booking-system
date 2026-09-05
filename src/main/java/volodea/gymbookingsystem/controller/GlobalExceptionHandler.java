@@ -8,6 +8,7 @@ import volodea.gymbookingsystem.dto.ErrorResponse;
 import volodea.gymbookingsystem.exception.ConflictException;
 import volodea.gymbookingsystem.exception.InvalidCredentialsException;
 import volodea.gymbookingsystem.exception.NotFoundException;
+import volodea.gymbookingsystem.exception.UnauthorizedException;
 
 import java.time.LocalDateTime;
 
@@ -26,8 +27,8 @@ public class GlobalExceptionHandler{
                 .body(new ErrorResponse(ex.getMessage(), 409, LocalDateTime.now()));
     }
 
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException ex){
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex){
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse(ex.getMessage(), 401, LocalDateTime.now()));
     }
