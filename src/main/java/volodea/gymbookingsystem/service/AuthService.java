@@ -64,8 +64,10 @@ public class AuthService {
 
         User user = verifiedToken.getUser();
 
+        RefreshToken newRefreshToken = refreshTokenService.generateRefreshToken(user);
+
         String accessToken = jwtService.generateJwtToken(user);
 
-        return new LoginResponse(accessToken, verifiedToken.getToken());
+        return new LoginResponse(accessToken, newRefreshToken.getToken());
     }
 }
