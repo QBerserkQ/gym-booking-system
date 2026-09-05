@@ -48,8 +48,6 @@ public class RefreshTokenService {
         return refreshToken;
      }
 
-
-
      @Transactional
      public void deleteRefreshTokenByUser(User user) {
          refreshTokenRepository.deleteByUser(user);

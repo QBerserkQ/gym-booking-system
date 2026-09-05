@@ -14,6 +14,7 @@ import volodea.gymbookingsystem.entity.Role;
 import volodea.gymbookingsystem.entity.User;
 import volodea.gymbookingsystem.exception.EmailAlreadyExistsException;
 import volodea.gymbookingsystem.exception.InvalidCredentialsException;
+import volodea.gymbookingsystem.exception.UserNotFoundException;
 import volodea.gymbookingsystem.repository.UserRepository;
 
 @Service
@@ -69,5 +70,11 @@ public class AuthService {
         String accessToken = jwtService.generateJwtToken(user);
 
         return new LoginResponse(accessToken, newRefreshToken.getToken());
+    }
+
+    public void logoutUser(Long userId) {
+        User user = userRepository.getReferenceById(userId);
+
+        refreshTokenService.deleteRefreshTokenByUser(user);
     }
 }
