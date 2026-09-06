@@ -41,8 +41,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/bookings/pending").hasAnyRole("SUPPORT", "ADMIN")
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(rateLimitingFilter, JwtAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimitingFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
