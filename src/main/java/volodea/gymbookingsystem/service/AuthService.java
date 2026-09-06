@@ -1,12 +1,8 @@
 package volodea.gymbookingsystem.service;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import volodea.gymbookingsystem.config.jwt.JwtService;
 import volodea.gymbookingsystem.dto.*;
 import volodea.gymbookingsystem.entity.RefreshToken;
@@ -14,7 +10,6 @@ import volodea.gymbookingsystem.entity.Role;
 import volodea.gymbookingsystem.entity.User;
 import volodea.gymbookingsystem.exception.EmailAlreadyExistsException;
 import volodea.gymbookingsystem.exception.InvalidCredentialsException;
-import volodea.gymbookingsystem.exception.UserNotFoundException;
 import volodea.gymbookingsystem.repository.UserRepository;
 
 @Service
