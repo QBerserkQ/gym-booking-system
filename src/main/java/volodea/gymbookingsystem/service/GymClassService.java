@@ -1,5 +1,6 @@
 package volodea.gymbookingsystem.service;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import volodea.gymbookingsystem.dto.GymClassResponse;
 import volodea.gymbookingsystem.entity.GymClass;
@@ -17,6 +18,7 @@ public class GymClassService {
         this.gymRepository = gymRepository;
     }
 
+    @Cacheable("gymClasses")
     public List<GymClassResponse> getAllGymClasses() {
         return gymRepository.findAll()
                 .stream()
