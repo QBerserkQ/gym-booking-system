@@ -21,6 +21,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final GymClassService gymClassService;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Transactional
     public BookingResponse createBooking(BookingRequest bookingRequest, Long userId) {
@@ -67,6 +68,11 @@ public class BookingService {
         booking.setBookingStatus(BookingStatus.CONFIRMED);
         Booking saved = bookingRepository.save(booking);
 
+        emailService.sendEmail(
+                saved.getUser().getEmail()
+                , gymClass.getTitle()
+                , saved.getBookingStatus());
+
         return toResponse(saved, gymClass);
     }
 
@@ -76,6 +82,11 @@ public class BookingService {
 
         booking.setBookingStatus(BookingStatus.REJECTED);
         Booking saved = bookingRepository.save(booking);
+
+        emailService.sendEmail(
+                saved.getUser().getEmail()
+                , saved.getGymClass().getTitle()
+                , saved.getBookingStatus());
 
         return toResponse(saved, saved.getGymClass());
     }
