@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/approve", "/api/bookings/*/reject")
                         .hasAnyRole("SUPPORT", "ADMIN")
                         .requestMatchers("/api/bookings/pending").hasAnyRole("SUPPORT", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/gym-classes/create").hasAnyRole("SUPPORT", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

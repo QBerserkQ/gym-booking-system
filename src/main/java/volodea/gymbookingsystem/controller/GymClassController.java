@@ -1,8 +1,10 @@
 package volodea.gymbookingsystem.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import volodea.gymbookingsystem.dto.GymClassRequest;
 import volodea.gymbookingsystem.dto.GymClassResponse;
 import volodea.gymbookingsystem.service.GymClassService;
 
@@ -21,5 +23,11 @@ public class GymClassController {
     @GetMapping
     public List<GymClassResponse> getAllGymClasses() {
         return gymClassService.getAllGymClasses();
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<GymClassResponse> createGymClass(@Valid @RequestBody GymClassRequest gymClassRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(gymClassService.createNewGymClass(gymClassRequest));
     }
 }

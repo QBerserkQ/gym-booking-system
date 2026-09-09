@@ -1,14 +1,16 @@
 package volodea.gymbookingsystem.service;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import volodea.gymbookingsystem.dto.GymClassRequest;
 import volodea.gymbookingsystem.dto.GymClassResponse;
 import volodea.gymbookingsystem.entity.GymClass;
 import volodea.gymbookingsystem.exception.GymClassNotFoundException;
 import volodea.gymbookingsystem.repository.GymRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class GymClassService {
@@ -42,5 +44,21 @@ public class GymClassService {
         return gymRepository.findByIdForUpdate(gymClassId).orElseThrow(
                 () -> new GymClassNotFoundException(gymClassId)
         );
+    }
+
+    @CacheEvict(value = "gymClasses", allEntries = true)
+    public GymClassResponse createNewGymClass(GymClassRequest gymClassRequest) {
+        GymClass gymClass = GymClass.builder()
+                .title(gymClassRequest.title())
+                .startTime(gymClassRequest.startTime())
+                .capacity(gymClassRequest.capacity())
+                .build();
+
+        GymClass saved = gymRepository.save(gymClass);
+
+        LocalDateTime startTime = saved.getStartTime();
+        LocalDateTime endTime = startTime.plusHours(2);
+
+        return new GymClassResponse(saved.getId(), saved.getTitle(), startTime, endTime, saved.getCapacity());
     }
 }
