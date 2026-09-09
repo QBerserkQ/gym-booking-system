@@ -24,13 +24,22 @@ public class RefreshTokenService {
 
     @Transactional
      public RefreshToken generateRefreshToken(User user) {
-         refreshTokenRepository.deleteByUser(user);
+        RefreshToken refreshToken = refreshTokenRepository.findByUser(user)
+                .orElseGet(() -> RefreshToken.builder().user(user).build());
 
-         RefreshToken refreshToken = RefreshToken.builder()
+        refreshToken.setToken(UUID.randomUUID().toString());
+        refreshToken.setExpiryDate(LocalDateTime.now().plusDays(expDays));
+
+        /*
+        refreshTokenRepository.deleteByUser(user);
+
+        RefreshToken refreshToken = RefreshToken.builder()
                  .token(UUID.randomUUID().toString())
                  .expiryDate(LocalDateTime.now().plusDays(expDays))
                  .user(user)
                  .build();
+
+        */
 
          return refreshTokenRepository.save(refreshToken);
      }
