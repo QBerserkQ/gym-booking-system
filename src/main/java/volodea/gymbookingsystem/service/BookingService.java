@@ -9,6 +9,7 @@ import volodea.gymbookingsystem.entity.Booking;
 import volodea.gymbookingsystem.entity.BookingStatus;
 import volodea.gymbookingsystem.entity.GymClass;
 import volodea.gymbookingsystem.exception.*;
+import volodea.gymbookingsystem.messaging.StaleBookingProducer;
 import volodea.gymbookingsystem.repository.BookingRepository;
 import volodea.gymbookingsystem.repository.UserRepository;
 
@@ -22,6 +23,7 @@ public class BookingService {
     private final GymClassService gymClassService;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final StaleBookingProducer staleBookingProducer;
 
     @Transactional
     public BookingResponse createBooking(BookingRequest bookingRequest, Long userId) {
@@ -48,6 +50,7 @@ public class BookingService {
                 .build();
 
         booking =  bookingRepository.save(booking);
+        staleBookingProducer.scheduleStaleCheck(booking.getId());
 
         return toResponse(booking, gymClass);
     }
