@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import volodea.gymbookingsystem.config.OAuth2.OAuth2LoginSuccessHandler;
 import volodea.gymbookingsystem.config.SecurityConfig;
 import volodea.gymbookingsystem.config.jwt.JwtService;
 import volodea.gymbookingsystem.dto.GymClassRequest;
@@ -42,6 +43,9 @@ public class GymClassControllerTest {
 
     @MockitoBean
     private UserRepository userRepository;
+
+    @MockitoBean
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Test
     void shouldReturnAllGymClasses() throws Exception {

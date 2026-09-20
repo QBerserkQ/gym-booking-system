@@ -30,14 +30,15 @@ public class RefreshTokenServiceTest {
 
     @Test
     void shouldGenerateRefreshToken() {
-        User user = User.builder().id(1L).build();
+        User user = User.builder().id(999L).build();
 
+        when(refreshTokenRepository.findByUser(user))
+                .thenReturn(Optional.empty());
         when(refreshTokenRepository.save(any(RefreshToken.class)))
                 .thenAnswer(i -> i.getArgument(0));
 
         RefreshToken refreshToken = refreshTokenService.generateRefreshToken(user);
 
-        verify(refreshTokenRepository).deleteByUser(user);
         assertThat(refreshToken.getUser().getId()).isEqualTo(user.getId());
         assertThat(refreshToken.getToken()).isNotNull();
     }

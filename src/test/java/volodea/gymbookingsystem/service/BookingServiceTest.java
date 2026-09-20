@@ -12,6 +12,7 @@ import volodea.gymbookingsystem.entity.BookingStatus;
 import volodea.gymbookingsystem.entity.GymClass;
 import volodea.gymbookingsystem.entity.User;
 import volodea.gymbookingsystem.exception.*;
+import volodea.gymbookingsystem.messaging.StaleBookingProducer;
 import volodea.gymbookingsystem.repository.BookingRepository;
 import volodea.gymbookingsystem.repository.UserRepository;
 
@@ -20,6 +21,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +35,10 @@ public class BookingServiceTest {
     private GymClassService gymClassService;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private EmailService emailService;
+    @Mock
+    StaleBookingProducer staleBookingProducer;
 
     @Test
     void shouldCreateBookingWhenSpotsAvailable() {
@@ -49,7 +55,12 @@ public class BookingServiceTest {
                 .thenReturn(5L);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(bookingRepository.save(any(Booking.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(invocation -> {
+                    Booking booking = invocation.getArgument(0);
+                    booking.setId(1L);
+                    return booking;
+                });
+        doNothing().when(staleBookingProducer).scheduleStaleCheck(any(Long.class));
 
         BookingResponse response = bookingService
                 .createBooking(new BookingRequest(1L), 1L);
@@ -102,15 +113,22 @@ public class BookingServiceTest {
         GymClass gymClass = GymClass.builder()
                 .id(1L).title("Main Gym").capacity(30).build();
 
+        User user = User.builder()
+                .id(1L).email("email@mail.ru").build();
+
         Booking booking = Booking.builder()
-                .id(1L).bookingStatus(BookingStatus.PENDING).gymClass(gymClass).build();
+                .id(1L).bookingStatus(BookingStatus.PENDING).gymClass(gymClass).user(user).build();
 
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
         when(gymClassService.findGymClassByIdForUpdate(1L)).thenReturn(gymClass);
         when(bookingRepository.countByGymClassIdAndBookingStatus(1L, BookingStatus.CONFIRMED))
                 .thenReturn(10L);
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
+        doNothing().when(emailService).sendEmail(
+                any(String.class),
+                any(String.class),
+                any(BookingStatus.class)
+        );
 
         BookingResponse response = bookingService.approveBooking(1L);
 
@@ -124,11 +142,16 @@ public class BookingServiceTest {
                 .id(1L).title("Main Gym").capacity(30).build();
 
         Booking booking = Booking.builder()
-                .id(1L).bookingStatus(BookingStatus.PENDING).gymClass(gymClass).build();
+                .id(1L).bookingStatus(BookingStatus.PENDING).gymClass(gymClass)
+                .user(User.builder().email("a@m.ru").build()).build();
 
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
+        doNothing().when(emailService).sendEmail(
+                any(String.class),
+                any(String.class),
+                any(BookingStatus.class)
+        );
 
         BookingResponse response = bookingService.rejectBooking(1L);
 

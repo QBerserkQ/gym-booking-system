@@ -4,12 +4,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import volodea.gymbookingsystem.config.OAuth2.OAuth2LoginSuccessHandler;
 import volodea.gymbookingsystem.config.SecurityConfig;
 import volodea.gymbookingsystem.config.jwt.JwtService;
 import volodea.gymbookingsystem.dto.BookingRequest;
@@ -48,6 +53,9 @@ public class BookingControllerTest {
     @MockitoBean
     private UserRepository userRepository;
 
+    @MockitoBean
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
     @Test
     void shouldReturnCreatedBookingResponse() throws Exception {
         BookingResponse bookingResponse = new BookingResponse(1L, "Main"
@@ -64,9 +72,7 @@ public class BookingControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
-                        
                             "gymClassId": 10
-                            
                         }
                         """))
                 .andExpect(status().isCreated())
@@ -89,7 +95,7 @@ public class BookingControllerTest {
                 .content("""
                             {
                                 "gymClassId": 10
-                            }    
+                            }
                         """))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409));
@@ -156,7 +162,13 @@ public class BookingControllerTest {
         bookings.add(new BookingResponse(1L
                 , "Main", LocalDateTime.now(), BookingStatus.PENDING, LocalDateTime.now()));
 
-        when(bookingService.getPendingBookings()).thenReturn(bookings);
+        Page<BookingResponse> page = new PageImpl<>(
+                bookings
+                , PageRequest.of(0, 10)
+                , 1
+        );
+
+        when(bookingService.getPendingBookings(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/bookings/pending")
                         .with(SecurityMockMvcRequestPostProcessors
@@ -165,15 +177,21 @@ public class BookingControllerTest {
                                 ))
                         ))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$") .isArray())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].bookingStatus").value("PENDING"));
+                .andExpect(jsonPath("$.content") .isArray())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].bookingStatus").value("PENDING"));
     }
 
     @Test
     void shouldReturnEmptyListWhenNoBookings() throws Exception {
-        when(bookingService.getPendingBookings()).thenReturn(new ArrayList<>());
+        Page<BookingResponse> page = new PageImpl<>(
+                List.of()
+                , PageRequest.of(0, 10)
+                , 0
+        );
+
+        when(bookingService.getPendingBookings(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/bookings/pending")
                         .with(SecurityMockMvcRequestPostProcessors
@@ -182,8 +200,12 @@ public class BookingControllerTest {
                                 ))
                         ))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$") .isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(0))
+                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.totalPages").value(0))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(10));
     }
 
     @Test

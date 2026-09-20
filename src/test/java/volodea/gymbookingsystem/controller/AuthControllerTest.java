@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import volodea.gymbookingsystem.config.OAuth2.OAuth2LoginSuccessHandler;
 import volodea.gymbookingsystem.config.SecurityConfig;
 import volodea.gymbookingsystem.config.jwt.JwtService;
 import volodea.gymbookingsystem.dto.*;
@@ -37,6 +38,9 @@ public class AuthControllerTest {
 
     @MockitoBean
     private UserRepository userRepository;
+
+    @MockitoBean
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Test
     void shouldRegisterUser() throws Exception {
@@ -155,6 +159,6 @@ public class AuthControllerTest {
     @Test
     void shouldReturn401WhenLogoutWithoutAuthentication() throws Exception {
         mockMvc.perform(post("/api/auth/logout"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }
