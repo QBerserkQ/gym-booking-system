@@ -1,5 +1,6 @@
 package volodea.gymbookingsystem.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,6 +38,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/oauth2/**", "/login/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/gym-classes").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
@@ -46,6 +48,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/gym-classes/create").hasAnyRole("SUPPORT", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/users/*/role").hasRole("ADMIN")
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                        )
                 )
                 .oauth2Login(oauth2
                         -> oauth2.successHandler(oAuth2LoginSuccessHandler))

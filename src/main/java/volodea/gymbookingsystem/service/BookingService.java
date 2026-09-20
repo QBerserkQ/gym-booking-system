@@ -1,6 +1,8 @@
 package volodea.gymbookingsystem.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import volodea.gymbookingsystem.dto.BookingRequest;
@@ -110,12 +112,11 @@ public class BookingService {
         bookingRepository.delete(booking);
     }
 
-    public List<BookingResponse> getPendingBookings() {
-        List<Booking> bookings = bookingRepository.findByBookingStatus(BookingStatus.PENDING);
-
-        return bookings.stream().map(
-                booking -> toResponse(booking, booking.getGymClass()))
-                .toList();
+    public Page<BookingResponse> getPendingBookings(Pageable pageable) {
+        return bookingRepository.findByBookingStatus(BookingStatus.PENDING, pageable)
+                .map(
+                        booking -> toResponse(booking, booking.getGymClass())
+                );
     }
 
     public List<BookingResponse> getBookingsByUserId(Long userId){

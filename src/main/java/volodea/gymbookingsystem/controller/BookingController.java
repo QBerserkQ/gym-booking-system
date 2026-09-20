@@ -1,6 +1,9 @@
 package volodea.gymbookingsystem.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,8 +25,9 @@ public class BookingController {
     }
 
     @GetMapping("/pending")
-    public ResponseEntity<List<BookingResponse>> getPendingBookings() {
-        return ResponseEntity.ok(bookingService.getPendingBookings());
+    public ResponseEntity<Page<BookingResponse>> getPendingBookings(
+            @PageableDefault(sort = "createdAt")Pageable pageable) {
+        return ResponseEntity.ok(bookingService.getPendingBookings(pageable));
     }
 
     @GetMapping("/my")
