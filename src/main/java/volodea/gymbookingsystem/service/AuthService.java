@@ -1,6 +1,8 @@
 package volodea.gymbookingsystem.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import volodea.gymbookingsystem.config.jwt.JwtService;
@@ -10,6 +12,7 @@ import volodea.gymbookingsystem.entity.Role;
 import volodea.gymbookingsystem.entity.User;
 import volodea.gymbookingsystem.exception.EmailAlreadyExistsException;
 import volodea.gymbookingsystem.exception.InvalidCredentialsException;
+import volodea.gymbookingsystem.exception.UserNotFoundException;
 import volodea.gymbookingsystem.repository.UserRepository;
 
 @Service
@@ -20,6 +23,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final StringRedisTemplate redisTemplate;
 
     public RegisterResponse registerUser(RegisterRequest registerRequest) {
 
@@ -71,5 +75,25 @@ public class AuthService {
         User user = userRepository.getReferenceById(userId);
 
         refreshTokenService.deleteRefreshTokenByUser(user);
+    }
+
+    public LoginResponse exchangeOAuth2Code (OAuth2ExchangeRequest request){
+        String key = "oauth2:code:" + request.code();
+        String userIdStr = redisTemplate.opsForValue().get(key);
+
+        if(userIdStr == null){
+            throw new InvalidCredentialsException();
+        }
+
+        redisTemplate.delete(key);
+        Long userId = Long.parseLong(userIdStr);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        String accessToken = jwtService.generateJwtToken(user);
+        RefreshToken refreshToken = refreshTokenService.generateRefreshToken(user);
+
+        return new LoginResponse(accessToken, refreshToken.getToken());
     }
 }

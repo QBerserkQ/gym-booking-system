@@ -3,6 +3,7 @@ package volodea.gymbookingsystem.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,5 +47,12 @@ public class AuthController {
         authService.logoutUser(userId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/oauth2/exchange")
+    public ResponseEntity<LoginResponse> exchangeOAuth2Code(@Valid @RequestBody OAuth2ExchangeRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(authService.exchangeOAuth2Code(request));
     }
 }

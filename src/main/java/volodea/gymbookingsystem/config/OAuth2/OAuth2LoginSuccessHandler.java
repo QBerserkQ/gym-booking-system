@@ -4,25 +4,29 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import volodea.gymbookingsystem.config.jwt.JwtService;
 import volodea.gymbookingsystem.entity.Role;
 import volodea.gymbookingsystem.entity.User;
 import volodea.gymbookingsystem.repository.UserRepository;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final UserRepository userRepository;
-    private final JwtService jwtService;
+    private final StringRedisTemplate redisTemplate;
 
     @Value("${app.frontend.oauth2-redirect-uri}")
     private String frontendRedirectUri;
+
+    private static final Duration CODE_TTL = Duration.ofSeconds(30);
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request
@@ -47,8 +51,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                         }
                 );
 
-        String token = jwtService.generateJwtToken(user);
+        String code = UUID.randomUUID().toString();
+        redisTemplate.opsForValue().set("oauth2:code:" + code, user.getId().toString(), CODE_TTL);
 
-        response.sendRedirect(frontendRedirectUri + "?token=" + token);
+        response.sendRedirect(frontendRedirectUri + "?code=" + code);
     }
 }
