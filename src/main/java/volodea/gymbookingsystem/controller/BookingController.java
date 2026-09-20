@@ -52,4 +52,11 @@ public class BookingController {
     public BookingResponse rejectBooking(@PathVariable Long bookingId) {
         return bookingService.rejectBooking(bookingId);
     }
+
+    @DeleteMapping("/{bookingId}")
+    public ResponseEntity<Void> cancelBooking(@PathVariable Long bookingId, Authentication authentication) {
+        Long userId = Long.parseLong(authentication.getName());
+        bookingService.cancelBooking(bookingId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

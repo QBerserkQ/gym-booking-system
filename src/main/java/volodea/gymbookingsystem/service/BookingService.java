@@ -94,6 +94,22 @@ public class BookingService {
         return toResponse(saved, saved.getGymClass());
     }
 
+    @Transactional
+    public void cancelBooking(Long bookingId, Long userId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException(bookingId));
+
+        if(!booking.getUser().getId().equals(userId)) {
+            throw new AccessDeniedException("You can only cancel your own booking");
+        }
+
+        if(booking.getBookingStatus() != BookingStatus.PENDING) {
+            throw new InvalidBookingStateException(bookingId);
+        }
+
+        bookingRepository.delete(booking);
+    }
+
     public List<BookingResponse> getPendingBookings() {
         List<Booking> bookings = bookingRepository.findByBookingStatus(BookingStatus.PENDING);
 

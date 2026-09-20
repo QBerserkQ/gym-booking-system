@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import volodea.gymbookingsystem.dto.ErrorResponse;
 import volodea.gymbookingsystem.exception.ConflictException;
+import volodea.gymbookingsystem.exception.ForbiddenException;
 import volodea.gymbookingsystem.exception.NotFoundException;
 import volodea.gymbookingsystem.exception.UnauthorizedException;
 
@@ -52,4 +53,11 @@ public class GlobalExceptionHandler{
         return ResponseEntity.badRequest().body(body);
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbidden(ForbiddenException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(
+                        new ErrorResponse(ex.getMessage(), 403, LocalDateTime.now())
+                );
+    }
 }
