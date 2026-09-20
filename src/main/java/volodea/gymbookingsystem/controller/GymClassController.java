@@ -1,5 +1,6 @@
 package volodea.gymbookingsystem.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import volodea.gymbookingsystem.service.GymClassService;
 
 import java.util.List;
 
+@Tag(name = "Gym Classes", description = "Endpoints for viewing and creating gym classes.")
 @RestController
 @RequestMapping("/api/gym-classes")
 public class GymClassController {

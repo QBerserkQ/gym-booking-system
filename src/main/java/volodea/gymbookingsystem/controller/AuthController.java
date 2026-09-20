@@ -1,5 +1,6 @@
 package volodea.gymbookingsystem.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import volodea.gymbookingsystem.dto.*;
 import volodea.gymbookingsystem.service.AuthService;
 
+@Tag(name = "Authentication", description = "Endpoints for registration, login, refresh token, logout, OAuth2 (Only Google)")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
