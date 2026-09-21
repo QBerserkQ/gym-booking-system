@@ -88,4 +88,4 @@ jobs:
           SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE_0: email
           SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE_1: profile
-        run: ./gradlew test --tests "volodea.gymbookingsystem.BookingRaceConditionTC" --stacktrace --info
+        run: ./gradlew test
